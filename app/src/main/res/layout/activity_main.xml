@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/chartLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,6 +9,74 @@
     <com.github.mikephil.charting.charts.BarChart
         android:id="@+id/barChart"
         android:layout_width="match_parent"
-        android:layout_height="400dp" />
+        android:layout_height="400dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/average"
+        android:layout_width="200dp"
+        android:layout_height="80dp"
+        android:text="@string/average_sleep"
+        android:textSize="20sp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        app:layout_constraintTop_toBottomOf="@+id/barChart"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/averageValue"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:textSize="20sp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/barChart"
+        app:layout_constraintLeft_toRightOf="@+id/average" />
+
+    <TextView
+        android:id="@+id/averageLastWeek"
+        android:layout_width="200dp"
+        android:layout_height="80dp"
+        android:text="@string/average_sleep_last_week"
+        android:textSize="20sp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        app:layout_constraintTop_toBottomOf="@+id/average"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/averageValueLastWeek"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:textSize="20sp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/average"
+        app:layout_constraintLeft_toRightOf="@+id/averageLastWeek" />
+
+    <TextView
+        android:id="@+id/averageLastMonth"
+        android:layout_width="200dp"
+        android:layout_height="80dp"
+        android:text="@string/average_sleep_last_month"
+        android:textSize="20sp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        app:layout_constraintTop_toBottomOf="@+id/averageLastWeek"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/averageValueLastMonth"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:textSize="20sp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/averageLastWeek"
+        app:layout_constraintLeft_toRightOf="@+id/averageLastMonth" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
