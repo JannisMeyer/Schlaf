@@ -6,10 +6,10 @@ import java.time.LocalDate
 
 @Entity(tableName = "sleepData")
 data class Sleep (
-    @PrimaryKey(autoGenerate = true) var date: LocalDate,
-    var hoursSlept : Float = 8.0F,
-    var extraHoursSlept : Float = 0.0F,
-    var feelingAwake : Boolean = true,
-    var windowOpen : Boolean = true,
-    var feelingSick : Boolean = false
+    @PrimaryKey(autoGenerate = false) var date: LocalDate,
+    var hoursSlept : Float,
+    var extraHoursSlept : Float,
+    var feelingAwake : Boolean,
+    var windowOpen : Boolean,
+    var feelingSick : Boolean
 )

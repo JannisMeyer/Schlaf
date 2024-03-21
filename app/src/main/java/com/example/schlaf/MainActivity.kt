@@ -1,6 +1,5 @@
 package com.example.schlaf
 
-import android.content.ContentValues
 import android.content.ContentValues.TAG
 import android.graphics.Color
 import android.os.Bundle
@@ -32,30 +31,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
 
-    private lateinit var barChart: BarChart
+    private var barChart: BarChart = binding.barChart
 
-    // define variables for manually tracked sleep
     companion object {
 
-        private var manuallyTrackedSleep : MutableList<Sleep> = mutableListOf(
-            Sleep(LocalDate.of(2024,3,4),12F, 0F, true, false, true),
-            Sleep(LocalDate.of(2024,3,5),6F, 2F, true, false, true),
-            Sleep(LocalDate.of(2024,3,6),7.5F, 0F, true, true, true),
-            Sleep(LocalDate.of(2024,3,7),11F, 0F, false, true, true),
-            Sleep(LocalDate.of(2024,3,8),11F, 0F, true, true, false),
-            Sleep(LocalDate.of(2024,3,9),6F, 1.25F, false, true, false),
-            Sleep(LocalDate.of(2024,3,10),10F, 0F, true, true, false),
-            Sleep(LocalDate.of(2024,3,11),10F, 0F, true, true, false),
-            Sleep(LocalDate.of(2024,3,12),11F, 0F, false, true, false),
-            Sleep(LocalDate.of(2024,3,13),11.5F, 1F, false, true, false),
-            Sleep(LocalDate.of(2024,3,14),8F, 0F, false, true, false),
-            Sleep(LocalDate.of(2024,3,15),10.5F, 0F, true, false, false),
-            Sleep(LocalDate.of(2024,3,16),10F, 0F, true, true, false),
-            Sleep(LocalDate.of(2024,3,17),8F, 0F, true, true, false),
-            Sleep(LocalDate.of(2024,3,18),7.5F, 0F, false, true, false),
-            Sleep(LocalDate.of(2024,3,19),7.5F, 0F, true, true, false),
-            Sleep(LocalDate.of(2024,3,20),10F, 0F, true, true, false))
-        private var dataSetSize = manuallyTrackedSleep.size
+        private lateinit var sleepDataGlobal : MutableList<Sleep>
+        private lateinit var startDate : LocalDate
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,17 +47,15 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        getSleep()
         setupBarChart()
+        drawBarChart()
         setAverages()
-
-        //Log.d(TAG, dataSetSize.toString())
     }
 
     private fun setupBarChart() {
 
         // define bar chart
-        barChart = binding.barChart
-
         barChart.setDrawBarShadow(false)
         barChart.setDrawValueAboveBar(true)
         barChart.description.isEnabled = false
@@ -86,7 +65,6 @@ class MainActivity : AppCompatActivity() {
 
         // define legend
         val legend: Legend = barChart.legend
-        //legend.isEnabled = false
         legend.textSize = 14f
 
         // define x axis
@@ -95,33 +73,16 @@ class MainActivity : AppCompatActivity() {
         xAxis.setDrawGridLines(false)
         xAxis.textSize = 12f
         xAxis.labelCount = 5
-        val labels: MutableList<String> = mutableListOf()
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         xAxis.valueFormatter = object : ValueFormatter() {
-            init {
 
-                // get date data for y axis
-                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-                for (i in 0 until dataSetSize) {
-                    labels.add(manuallyTrackedSleep[i].date.format(formatter))
-                }
-
-                //addCurrentDate()
-            }
-
-            fun addCurrentDate() {
-
-                val currentDate = LocalDate.now()
-                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-                val formattedDate = currentDate.format(formatter)
-                labels.add(formattedDate)
-            }
-
-            override fun getFormattedValue(value: Float): String { // currently not used
+            override fun getFormattedValue(value: Float): String { // used by system
 
                 val index = value.toInt()
-                return if (index in 0 until dataSetSize) {
-                    labels[index]
+                return if (index in 0 until sleepDataGlobal.size) {
+                    sleepDataGlobal[index].date.format(formatter)
                 } else {
+                    Log.e(TAG, "Index out of bounds of sleep variable!")
                     ""
                 }
             }
@@ -135,20 +96,21 @@ class MainActivity : AppCompatActivity() {
 
         val rightAxis = barChart.axisRight
         rightAxis.isEnabled = false
+    }
+
+    private fun drawBarChart() {
 
         // create entries and map y-values to x-values
         val sleepEntries: MutableList<BarEntry> = ArrayList()
         val totalSleepEntries: MutableList<BarEntry> = ArrayList()
 
-        for (i in 0 until dataSetSize) {
-            val sleepYValue = manuallyTrackedSleep[i].hoursSlept
-            val totalSleepYValue = manuallyTrackedSleep[i].extraHoursSlept + manuallyTrackedSleep[i].hoursSlept // sleep plus naps
+        for (i in 0 until sleepDataGlobal.size) {
+            val sleepYValue = sleepDataGlobal[i].hoursSlept
+            val totalSleepYValue = sleepDataGlobal[i].extraHoursSlept + sleepDataGlobal[i].hoursSlept // sleep plus naps
             val sleepBarEntry = BarEntry(i.toFloat(), sleepYValue)
             val totalSleepBarEntry = BarEntry(i.toFloat(), totalSleepYValue)
             sleepEntries.add(sleepBarEntry)
             totalSleepEntries.add(totalSleepBarEntry)
-
-            //Log.d(TAG, sleepYValue.toString())
         }
 
         // create datasets for sleep and total sleep
@@ -160,7 +122,10 @@ class MainActivity : AppCompatActivity() {
         totalSleepDataSet.valueTextSize = 12f
         totalSleepDataSet.color = Color.GREEN
 
-        val dataSets : MutableList<IBarDataSet> = mutableListOf(totalSleepDataSet, sleepDataSet) // total sleep before sleep so that sleep bars overlap total sleep bars -> extra sleep visible
+        val dataSets: MutableList<IBarDataSet> = mutableListOf(
+            totalSleepDataSet,
+            sleepDataSet
+        ) // total sleep before sleep so that sleep bars overlap total sleep bars -> extra sleep visible
 
         // pass data to chart
         val data = BarData(dataSets)
@@ -177,13 +142,41 @@ class MainActivity : AppCompatActivity() {
 
         // calculate average sleep without naps
         var totalNightlySleep = 0F
-        for (i in 0 until dataSetSize) {
-            totalNightlySleep += manuallyTrackedSleep[i].hoursSlept
+        for (i in 0 until sleepDataGlobal.size) {
+            totalNightlySleep += sleepDataGlobal[i].hoursSlept
         }
-        var averageNightlySleep = totalNightlySleep / dataSetSize
+        var averageNightlySleep = totalNightlySleep / sleepDataGlobal.size
 
         // write average into textview
         binding.averageValue.text = averageNightlySleep.round(1).toString()
+    }
+
+    private fun getSleep() {
+
+        val currentDate = LocalDate.now()
+        val tempDate = startDate
+        val sleepDataLocal = readFromDB()
+
+        if (sleepDataLocal.isEmpty()) {
+            sleepDataGlobal = sleepDataLocal
+        } else {
+            while (tempDate.isBefore(currentDate)) {
+                sleepDataLocal.add(Sleep(tempDate, 8F, 0F, true, true, false))
+                tempDate.plusDays(1)
+            }
+            sleepDataGlobal = sleepDataLocal
+            writeToDB(sleepDataGlobal)
+        }
+    }
+
+    private fun writeToDB(sleep: MutableList<Sleep>) {
+
+        ;
+    }
+
+    private fun readFromDB() : MutableList<Sleep> {
+
+        return ...
     }
 
     private fun Float.round(decimals: Int): Float {
