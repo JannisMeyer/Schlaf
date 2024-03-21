@@ -1,6 +1,12 @@
 package com.example.schlaf
 
-class Sleep (
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import java.time.LocalDate
+
+@Entity(tableName = "sleepData")
+data class Sleep (
+    @PrimaryKey(autoGenerate = true) var date: LocalDate,
     var hoursSlept : Float = 8.0F,
     var extraHoursSlept : Float = 0.0F,
     var feelingAwake : Boolean = true,

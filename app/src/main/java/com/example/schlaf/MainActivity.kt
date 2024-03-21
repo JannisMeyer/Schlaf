@@ -1,7 +1,10 @@
 package com.example.schlaf
 
+import android.content.ContentValues
+import android.content.ContentValues.TAG
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.example.schlaf.databinding.ActivityMainBinding
@@ -13,7 +16,6 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.pow
@@ -25,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     // TODO: add persistence of data
     // TODO: add averages below graph and to graph
     // TODO: add modify functionality to bars
-    // TODO: move average into own function, globalize dataset size
+    // TODO: add todays bar functionality
 
     private lateinit var binding: ActivityMainBinding
 
@@ -33,25 +35,28 @@ class MainActivity : AppCompatActivity() {
     private lateinit var barChart: BarChart
 
     // define variables for manually tracked sleep
-    private var DAY = 19
-    private var MONTH = 3
-    private var manuallyTrackedSleep : MutableList<Sleep> = mutableListOf(
-        Sleep(12F, 0F, true, false, true),
-        Sleep(6F, 2F, true, false, true),
-        Sleep(7.5F, 0F, true, true, true),
-        Sleep(11F, 0F, false, true, true),
-        Sleep(11F, 0F, true, true, false),
-        Sleep(6F, 1.25F, false, true, false),
-        Sleep(10F, 0F, true, true, false),
-        Sleep(10F, 0F, true, true, false),
-        Sleep(11F, 0F, false, true, false),
-        Sleep(11.5F, 1F, false, true, false),
-        Sleep(8F, 0F, false, true, false),
-        Sleep(10.5F, 0F, true, false, false),
-        Sleep(10F, 0F, true, true, false),
-        Sleep(8F, 0F, true, true, false),
-        Sleep(7.5F, 0F, false, true, false),
-        Sleep(7.5F, 0F, true, true, false))
+    companion object {
+
+        private var manuallyTrackedSleep : MutableList<Sleep> = mutableListOf(
+            Sleep(LocalDate.of(2024,3,4),12F, 0F, true, false, true),
+            Sleep(LocalDate.of(2024,3,5),6F, 2F, true, false, true),
+            Sleep(LocalDate.of(2024,3,6),7.5F, 0F, true, true, true),
+            Sleep(LocalDate.of(2024,3,7),11F, 0F, false, true, true),
+            Sleep(LocalDate.of(2024,3,8),11F, 0F, true, true, false),
+            Sleep(LocalDate.of(2024,3,9),6F, 1.25F, false, true, false),
+            Sleep(LocalDate.of(2024,3,10),10F, 0F, true, true, false),
+            Sleep(LocalDate.of(2024,3,11),10F, 0F, true, true, false),
+            Sleep(LocalDate.of(2024,3,12),11F, 0F, false, true, false),
+            Sleep(LocalDate.of(2024,3,13),11.5F, 1F, false, true, false),
+            Sleep(LocalDate.of(2024,3,14),8F, 0F, false, true, false),
+            Sleep(LocalDate.of(2024,3,15),10.5F, 0F, true, false, false),
+            Sleep(LocalDate.of(2024,3,16),10F, 0F, true, true, false),
+            Sleep(LocalDate.of(2024,3,17),8F, 0F, true, true, false),
+            Sleep(LocalDate.of(2024,3,18),7.5F, 0F, false, true, false),
+            Sleep(LocalDate.of(2024,3,19),7.5F, 0F, true, true, false),
+            Sleep(LocalDate.of(2024,3,20),10F, 0F, true, true, false))
+        private var dataSetSize = manuallyTrackedSleep.size
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +67,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupBarChart()
+        setAverages()
+
+        //Log.d(TAG, dataSetSize.toString())
     }
 
     private fun setupBarChart() {
@@ -91,17 +99,13 @@ class MainActivity : AppCompatActivity() {
         xAxis.valueFormatter = object : ValueFormatter() {
             init {
 
-                // create date data for y axis
+                // get date data for y axis
                 val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-                val startDate = LocalDate.of(2024, 3, 4)
-                val endDate = LocalDate.of(2024, MONTH, DAY)
-                var tempDate = startDate
-                while (!tempDate.isAfter(endDate)) {
-                    labels.add(tempDate.format(formatter))
-                    tempDate = tempDate.plusDays(1)
+                for (i in 0 until dataSetSize) {
+                    labels.add(manuallyTrackedSleep[i].date.format(formatter))
                 }
 
-                addCurrentDate()
+                //addCurrentDate()
             }
 
             fun addCurrentDate() {
@@ -112,10 +116,10 @@ class MainActivity : AppCompatActivity() {
                 labels.add(formattedDate)
             }
 
-            override fun getFormattedValue(value: Float): String {
+            override fun getFormattedValue(value: Float): String { // currently not used
 
                 val index = value.toInt()
-                return if (index >= 0 && index < labels.size) {
+                return if (index in 0 until dataSetSize) {
                     labels[index]
                 } else {
                     ""
@@ -136,13 +140,15 @@ class MainActivity : AppCompatActivity() {
         val sleepEntries: MutableList<BarEntry> = ArrayList()
         val totalSleepEntries: MutableList<BarEntry> = ArrayList()
 
-        for (i in 0 until labels.size - 1) {
+        for (i in 0 until dataSetSize) {
             val sleepYValue = manuallyTrackedSleep[i].hoursSlept
             val totalSleepYValue = manuallyTrackedSleep[i].extraHoursSlept + manuallyTrackedSleep[i].hoursSlept // sleep plus naps
             val sleepBarEntry = BarEntry(i.toFloat(), sleepYValue)
             val totalSleepBarEntry = BarEntry(i.toFloat(), totalSleepYValue)
             sleepEntries.add(sleepBarEntry)
             totalSleepEntries.add(totalSleepBarEntry)
+
+            //Log.d(TAG, sleepYValue.toString())
         }
 
         // create datasets for sleep and total sleep
@@ -165,13 +171,18 @@ class MainActivity : AppCompatActivity() {
 
         // show max of five bars, rest is scrollable
         barChart.setVisibleXRangeMaximum(5f)
+    }
 
-        // calculate average sleep
-        var totalNightlySleep : Float = 0F
-        for (i in 0 until labels.size - 1) {
+    private fun setAverages() {
+
+        // calculate average sleep without naps
+        var totalNightlySleep = 0F
+        for (i in 0 until dataSetSize) {
             totalNightlySleep += manuallyTrackedSleep[i].hoursSlept
         }
-        var averageNightlySleep = totalNightlySleep / (labels.size - 1)
+        var averageNightlySleep = totalNightlySleep / dataSetSize
+
+        // write average into textview
         binding.averageValue.text = averageNightlySleep.round(1).toString()
     }
 
