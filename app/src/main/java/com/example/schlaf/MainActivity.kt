@@ -1,6 +1,7 @@
 package com.example.schlaf
 
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -15,8 +16,10 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
+import kotlinx.coroutines.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.CompletableFuture
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -37,6 +40,7 @@ class MainActivity : AppCompatActivity() {
 
         private lateinit var sleepDataGlobal : MutableList<Sleep>
         private lateinit var startDate : LocalDate
+        private var dataLoaded = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -155,16 +159,13 @@ class MainActivity : AppCompatActivity() {
 
         val currentDate = LocalDate.now()
         val tempDate = startDate
-        val sleepDataLocal = readFromDB()
+        readFromDB()
 
-        if (sleepDataLocal.isEmpty()) {
-            sleepDataGlobal = sleepDataLocal
-        } else {
+        if (sleepDataGlobal.isEmpty()) { // DB was empty
             while (tempDate.isBefore(currentDate)) {
-                sleepDataLocal.add(Sleep(tempDate, 8F, 0F, true, true, false))
+                sleepDataGlobal.add(Sleep(tempDate, 8F, 0F, true, true, false))
                 tempDate.plusDays(1)
             }
-            sleepDataGlobal = sleepDataLocal
             writeToDB(sleepDataGlobal)
         }
     }
@@ -174,9 +175,17 @@ class MainActivity : AppCompatActivity() {
         ;
     }
 
-    private fun readFromDB() : MutableList<Sleep> {
+    private fun readFromDB() {
 
-        return ...
+        CoroutineScope(Dispatchers.IO).launch {
+            sleepDataGlobal = DatabaseProvider.getDatabase(this@MainActivity).sleepDataDao().getAllSleepData()
+            dataLoaded = true
+        }
+
+        while (!dataLoaded) { // wait for coroutine to finish
+            ;
+        }
+        dataLoaded = false
     }
 
     private fun Float.round(decimals: Int): Float {
