@@ -13,8 +13,11 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import kotlinx.coroutines.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -67,6 +70,19 @@ class MainActivity : AppCompatActivity() {
         barChart.setPinchZoom(false)
         barChart.setDrawGridBackground(false)
         barChart.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
+        barChart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+            override fun onValueSelected(e: Entry?, h: Highlight?) {
+                if (e != null) {
+                    val barEntry = e as BarEntry
+                    val extraInfo = barEntry.data // empty?
+                    Log.d(TAG, "$extraInfo")
+                }
+            }
+
+            override fun onNothingSelected() {
+
+            }
+        })
 
         // define legend
         val legend: Legend = barChart.legend
@@ -114,7 +130,7 @@ class MainActivity : AppCompatActivity() {
         for (i in sleepDataGlobal.indices) {
             val sleepYValue = sleepDataGlobal[i].hoursSlept
             val totalSleepYValue = sleepDataGlobal[i].extraHoursSlept + sleepDataGlobal[i].hoursSlept // sleep plus naps
-            val sleepBarEntry = BarEntry(i.toFloat(), sleepYValue)
+            val sleepBarEntry = BarEntry(i.toFloat(), sleepYValue, sleepDataGlobal[i]) // add whole object as additional data
             val totalSleepBarEntry = BarEntry(i.toFloat(), totalSleepYValue)
             sleepEntries.add(sleepBarEntry)
             totalSleepEntries.add(totalSleepBarEntry)
@@ -173,7 +189,7 @@ class MainActivity : AppCompatActivity() {
             var sleepDataTemp : MutableList<Sleep> = mutableListOf()
             while (tempDate.isBefore(currentDate)) {
                 Log.d(TAG, "temp date: $tempDate")
-                sleepDataTemp.add(Sleep(tempDate, 8F, 0F, true, true, false))
+                sleepDataTemp.add(Sleep(tempDate, 8F, 1F, true, true, false))
                 tempDate = tempDate.plusDays(1)
             }
             sleepDataGlobal = sleepDataTemp
