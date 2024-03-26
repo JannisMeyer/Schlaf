@@ -1,7 +1,6 @@
 package com.example.schlaf
 
 import android.content.ContentValues.TAG
-import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -19,7 +18,6 @@ import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
 import kotlinx.coroutines.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.CompletableFuture
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -29,18 +27,18 @@ class MainActivity : AppCompatActivity() {
     // TODO: add persistence of data
     // TODO: add averages below graph and to graph
     // TODO: add modify functionality to bars
-    // TODO: add todays bar functionality
+    // TODO: add today's bar functionality
 
     private lateinit var binding: ActivityMainBinding
 
-
-    private var barChart: BarChart = binding.barChart
+    private lateinit var barChart: BarChart
 
     companion object {
 
-        private lateinit var sleepDataGlobal : MutableList<Sleep>
+        private lateinit var sleepDataGlobal : List<Sleep>
         private lateinit var startDate : LocalDate
-        private var dataLoaded = false
+        private var dataReadingCompleted = false
+        private var dataWritingCompleted = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +48,9 @@ class MainActivity : AppCompatActivity() {
         // connect this activity with corresponding display
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // bind bar chart
+        barChart = binding.barChart
 
         getSleep()
         setupBarChart()
@@ -83,8 +84,8 @@ class MainActivity : AppCompatActivity() {
             override fun getFormattedValue(value: Float): String { // used by system
 
                 val index = value.toInt()
-                return if (index in 0 until sleepDataGlobal.size) {
-                    sleepDataGlobal[index].date.format(formatter)
+                return if (index in sleepDataGlobal.indices) {
+                    sleepDataGlobal[index].getDate().format(formatter)
                 } else {
                     Log.e(TAG, "Index out of bounds of sleep variable!")
                     ""
@@ -100,6 +101,8 @@ class MainActivity : AppCompatActivity() {
 
         val rightAxis = barChart.axisRight
         rightAxis.isEnabled = false
+
+        Log.d(TAG, "Setup of chart done")
     }
 
     private fun drawBarChart() {
@@ -108,7 +111,7 @@ class MainActivity : AppCompatActivity() {
         val sleepEntries: MutableList<BarEntry> = ArrayList()
         val totalSleepEntries: MutableList<BarEntry> = ArrayList()
 
-        for (i in 0 until sleepDataGlobal.size) {
+        for (i in sleepDataGlobal.indices) {
             val sleepYValue = sleepDataGlobal[i].hoursSlept
             val totalSleepYValue = sleepDataGlobal[i].extraHoursSlept + sleepDataGlobal[i].hoursSlept // sleep plus naps
             val sleepBarEntry = BarEntry(i.toFloat(), sleepYValue)
@@ -140,16 +143,18 @@ class MainActivity : AppCompatActivity() {
 
         // show max of five bars, rest is scrollable
         barChart.setVisibleXRangeMaximum(5f)
+
+        Log.d(TAG, "Drew bar chart")
     }
 
     private fun setAverages() {
 
         // calculate average sleep without naps
         var totalNightlySleep = 0F
-        for (i in 0 until sleepDataGlobal.size) {
-            totalNightlySleep += sleepDataGlobal[i].hoursSlept
+        for (element in sleepDataGlobal) {
+            totalNightlySleep += element.hoursSlept
         }
-        var averageNightlySleep = totalNightlySleep / sleepDataGlobal.size
+        val averageNightlySleep = totalNightlySleep / sleepDataGlobal.size
 
         // write average into textview
         binding.averageValue.text = averageNightlySleep.round(1).toString()
@@ -158,34 +163,66 @@ class MainActivity : AppCompatActivity() {
     private fun getSleep() {
 
         val currentDate = LocalDate.now()
-        val tempDate = startDate
+        Log.d(TAG, "Current date: $currentDate")
+        //val tempDate = startDate
+        var tempDate = LocalDate.of(2024, 3, 4)
         readFromDB()
 
         if (sleepDataGlobal.isEmpty()) { // DB was empty
+            Log.d(TAG, "DB is empty")
+            var sleepDataTemp : MutableList<Sleep> = mutableListOf()
             while (tempDate.isBefore(currentDate)) {
-                sleepDataGlobal.add(Sleep(tempDate, 8F, 0F, true, true, false))
-                tempDate.plusDays(1)
+                Log.d(TAG, "temp date: $tempDate")
+                sleepDataTemp.add(Sleep(tempDate, 8F, 0F, true, true, false))
+                tempDate = tempDate.plusDays(1)
             }
+            sleepDataGlobal = sleepDataTemp
             writeToDB(sleepDataGlobal)
+            readFromDB()
         }
     }
 
-    private fun writeToDB(sleep: MutableList<Sleep>) {
+    private fun writeToDB(sleepList: List<Sleep> = emptyList(), sleepEntry : Sleep? = null) {
 
-        ;
+        Log.d(TAG, "Entered writeToDB")
+        CoroutineScope(Dispatchers.IO).launch {
+
+            if (sleepList.isEmpty() && sleepEntry != null) { // passing of list or single entry possible
+                DatabaseProvider.getDatabase(this@MainActivity).sleepDataDao().insertSleepData(sleepEntry)
+                dataWritingCompleted = true
+                Log.d(TAG, "Wrote sleep entry")
+            } else if (sleepList.isNotEmpty() && sleepEntry == null) {
+                Log.d(TAG, "Writing sleep list...")
+                for (item in sleepList) {
+                    DatabaseProvider.getDatabase(this@MainActivity).sleepDataDao().insertSleepData(item)
+                }
+                dataWritingCompleted = true
+                Log.d(TAG, "Wrote sleep list")
+            } else {
+                Log.e(TAG, "Invalid input, data was not written to DB!")
+                dataWritingCompleted = true
+            }
+        }
+
+        while (!dataWritingCompleted) { // wait for coroutine to finish, function is synchronous this way
+            ;
+        }
+        Log.d(TAG, "Data writing complete")
+        dataWritingCompleted = false
     }
 
     private fun readFromDB() {
 
         CoroutineScope(Dispatchers.IO).launch {
             sleepDataGlobal = DatabaseProvider.getDatabase(this@MainActivity).sleepDataDao().getAllSleepData()
-            dataLoaded = true
+            dataReadingCompleted = true
         }
 
-        while (!dataLoaded) { // wait for coroutine to finish
+        while (!dataReadingCompleted) { // wait for coroutine to finish, function is synchronous this way
             ;
         }
-        dataLoaded = false
+        Log.d(TAG, "Data reading complete")
+        dataReadingCompleted = false
     }
 
     private fun Float.round(decimals: Int): Float {
