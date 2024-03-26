@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.schlaf.databinding.ActivityMainBinding
 import com.github.mikephil.charting.charts.BarChart
@@ -71,11 +72,13 @@ class MainActivity : AppCompatActivity() {
         barChart.setDrawGridBackground(false)
         barChart.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
         barChart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
-            override fun onValueSelected(e: Entry?, h: Highlight?) {
-                if (e != null) {
-                    val barEntry = e as BarEntry
-                    val extraInfo = barEntry.data // empty?
-                    Log.d(TAG, "$extraInfo")
+            override fun onValueSelected(entry: Entry?, h: Highlight?) {
+                if (entry != null) {
+                    val barEntry = entry as BarEntry
+                    val additionalData : Sleep = barEntry.data as Sleep // !! click selects totalSleepEntries (rear bars)
+                    Log.i(TAG, "Awake after getting up: ${additionalData.feelingAwake}")
+                    Log.i(TAG, "Window open: ${additionalData.windowOpen}")
+                    Log.i(TAG, "Feeling sick: ${additionalData.feelingSick}")
                 }
             }
 
@@ -131,7 +134,7 @@ class MainActivity : AppCompatActivity() {
             val sleepYValue = sleepDataGlobal[i].hoursSlept
             val totalSleepYValue = sleepDataGlobal[i].extraHoursSlept + sleepDataGlobal[i].hoursSlept // sleep plus naps
             val sleepBarEntry = BarEntry(i.toFloat(), sleepYValue, sleepDataGlobal[i]) // add whole object as additional data
-            val totalSleepBarEntry = BarEntry(i.toFloat(), totalSleepYValue)
+            val totalSleepBarEntry = BarEntry(i.toFloat(), totalSleepYValue, sleepDataGlobal[i])
             sleepEntries.add(sleepBarEntry)
             totalSleepEntries.add(totalSleepBarEntry)
         }
