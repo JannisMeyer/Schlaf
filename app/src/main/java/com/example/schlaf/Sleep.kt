@@ -38,8 +38,14 @@ data class Sleep (
         }
     }
 
-    fun getDate() : LocalDate { // getter for date
+    fun getRawDate() : LocalDate { // getter for date
 
         return LocalDate.of(year, month, day)
+    }
+
+    fun getGermanDate() : String { // getter for date
+
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        return LocalDate.of(year, month, day).format(formatter)
     }
 }

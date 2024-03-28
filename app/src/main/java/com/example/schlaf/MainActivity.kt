@@ -4,11 +4,7 @@ import android.content.ContentValues.TAG
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.PopupWindow
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.schlaf.databinding.ActivityMainBinding
 import com.github.mikephil.charting.charts.BarChart
@@ -65,19 +61,6 @@ class MainActivity : AppCompatActivity() {
         setAverages()
     }
 
-    private fun showPopupWindow(entry: Entry) {
-
-        val popupView = layoutInflater.inflate(R.layout.popout_layout, null)
-
-        val valueTextView: TextView = popupView.findViewById(R.id.sleepTextView)
-        val additionalData : Sleep = entry.data as Sleep
-        val sleepString = "Schlafdauer: ${additionalData.hoursSlept}"
-        valueTextView.text = sleepString
-
-        val popupWindow = PopupWindow(popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true)
-        popupWindow.showAtLocation(binding.root, Gravity.CENTER, 0, 0)
-    }
-
     private fun setupBarChart() {
 
         // define bar chart
@@ -96,12 +79,45 @@ class MainActivity : AppCompatActivity() {
                     Log.i(TAG, "Window open: ${additionalData.windowOpen}")
                     Log.i(TAG, "Feeling sick: ${additionalData.feelingSick}")
 
-                    showPopupWindow(barEntry)
+                    binding.date.text = additionalData.getGermanDate()
+
+                    val sleepString = "Schlaf: "+additionalData.hoursSlept.toString()
+                    binding.sleep.text = sleepString
+
+                    val extraSleepString = "Nap: "+additionalData.extraHoursSlept.toString()
+                    binding.extraSleep.text = extraSleepString
+
+                    val awakeString = if (additionalData.feelingAwake) {
+                        "Wach: Ja"
+                    } else {
+                        "Wach: Nein"
+                    }
+                    binding.awake.text = awakeString
+
+                    val windowString = if (additionalData.windowOpen) {
+                        "Fenster: auf"
+                    } else {
+                        "Fenster: zu"
+                    }
+                    binding.window.text = windowString
+
+                    val sickString = if (additionalData.feelingSick) {
+                        "Krank: nein"
+                    } else {
+                        "Krank: ja"
+                    }
+                    binding.sick.text = sickString
                 }
             }
 
             override fun onNothingSelected() {
 
+                binding.date.text = ""
+                binding.sleep.text = "Schlaf:"
+                binding.extraSleep.text = "Nap:"
+                binding.awake.text = "Wach:"
+                binding.window.text = "Fenster:"
+                binding.sick.text = "..."
             }
         })
 
@@ -122,7 +138,7 @@ class MainActivity : AppCompatActivity() {
 
                 val index = value.toInt()
                 return if (index in sleepDataGlobal.indices) {
-                    sleepDataGlobal[index].getDate().format(formatter)
+                    sleepDataGlobal[index].getRawDate().format(formatter)
                 } else {
                     Log.e(TAG, "Index out of bounds of sleep variable!")
                     ""

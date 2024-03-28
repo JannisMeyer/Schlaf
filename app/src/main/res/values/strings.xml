@@ -3,4 +3,9 @@
     <string name="average_sleep">Durchschnittlich (ohne Naps):</string>
     <string name="average_sleep_last_week">Durchschnittlich letzte Woche:</string>
     <string name="average_sleep_last_month">Durchschnittlich letzten Monat:</string>
+    <string name="sleep">Schlaf:</string>
+    <string name="extra_sleep">Nap:</string>
+    <string name="awake">Wach:</string>
+    <string name="sick">Krank:</string>
+    <string name="window">Fenster:</string>
 </resources>
