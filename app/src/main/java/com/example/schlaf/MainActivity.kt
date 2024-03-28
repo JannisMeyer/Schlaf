@@ -23,12 +23,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
     // TODO: add comments
-    // TODO: add persistence of data
-    // TODO: add averages below graph and to graph
     // TODO: add modify functionality to bars
     // TODO: add today's bar functionality
 
@@ -117,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                 binding.extraSleep.text = "Nap:"
                 binding.awake.text = "Wach:"
                 binding.window.text = "Fenster:"
-                binding.sick.text = "..."
+                binding.sick.text = "Krank:"
             }
         })
 
@@ -207,10 +206,40 @@ class MainActivity : AppCompatActivity() {
         for (element in sleepDataGlobal) {
             totalNightlySleep += element.hoursSlept
         }
-        val averageNightlySleep = totalNightlySleep / sleepDataGlobal.size
+        var averageNightlySleep = totalNightlySleep / sleepDataGlobal.size
 
         // write average into textview
         binding.averageValue.text = averageNightlySleep.round(1).toString()
+
+
+        // calculate average sleep for last week
+        totalNightlySleep = 0F
+        for (element in sleepDataGlobal.takeLast(7)) { // takeLast() will return all elements if element count < 7
+            totalNightlySleep += element.hoursSlept
+        }
+        averageNightlySleep = if (sleepDataGlobal.size >= 7) {
+            totalNightlySleep / 7
+        } else {
+            totalNightlySleep / sleepDataGlobal.size
+        }
+
+        // write average into textview
+        binding.averageValueLastSevenDays.text = averageNightlySleep.round(1).toString()
+
+
+        // calculate average sleep for last month
+        totalNightlySleep = 0F
+        for (element in sleepDataGlobal.takeLast(30)) { // takeLast() will return all elements if element count < 30
+            totalNightlySleep += element.hoursSlept
+        }
+        averageNightlySleep = if (sleepDataGlobal.size >= 30) {
+            totalNightlySleep / 7
+        } else {
+            totalNightlySleep / sleepDataGlobal.size
+        }
+
+        // write average into textview
+        binding.averageValueLastThirtyDays.text = averageNightlySleep.round(1).toString()
     }
 
     private fun getSleep() {
@@ -226,7 +255,7 @@ class MainActivity : AppCompatActivity() {
             var sleepDataTemp : MutableList<Sleep> = mutableListOf()
             while (tempDate.isBefore(currentDate)) {
                 Log.d(TAG, "temp date: $tempDate")
-                sleepDataTemp.add(Sleep(tempDate, 8F, 1F, true, true, false))
+                sleepDataTemp.add(Sleep(tempDate, Random.nextDouble(1.0, 12.0).toFloat().round(1), Random.nextDouble(0.0, 3.0).toFloat().round(1), true, true, false))
                 tempDate = tempDate.plusDays(1)
             }
             sleepDataGlobal = sleepDataTemp

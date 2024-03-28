@@ -13,9 +13,14 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent" />
 
+    <View style="@style/Divider"
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/barChart"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
     <TextView
         android:id="@+id/date"
-        android:layout_width="130dp"
+        android:layout_width="110dp"
         android:layout_height="30dp"
         android:textSize="17sp"
         android:layout_marginTop="20dp"
@@ -25,7 +30,7 @@
 
     <TextView
         android:id="@+id/sleep"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="30dp"
         android:text="@string/sleep"
         android:textSize="17sp"
@@ -36,7 +41,7 @@
 
     <TextView
         android:id="@+id/extra_sleep"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="30dp"
         android:text="@string/extra_sleep"
         android:textSize="17sp"
@@ -82,13 +87,18 @@
         app:layout_constraintTop_toBottomOf="@+id/sleep"
         app:layout_constraintLeft_toRightOf="@+id/sick" />
 
+    <View style="@style/Divider"
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/window"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
     <TextView
         android:id="@+id/average"
         android:layout_width="200dp"
         android:layout_height="50dp"
         android:text="@string/average_sleep"
         android:textSize="17sp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="40dp"
         android:layout_marginStart="20dp"
         app:layout_constraintTop_toBottomOf="@+id/awake"
         app:layout_constraintLeft_toLeftOf="parent" />
@@ -98,7 +108,7 @@
         android:layout_width="100dp"
         android:layout_height="50dp"
         android:textSize="17sp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="40dp"
         android:layout_marginStart="20dp"
         android:gravity="center"
         app:layout_constraintTop_toBottomOf="@+id/awake"
@@ -108,7 +118,7 @@
         android:id="@+id/averageLastWeek"
         android:layout_width="200dp"
         android:layout_height="50dp"
-        android:text="@string/average_sleep_last_week"
+        android:text="@string/average_sleep_last_seven_days"
         android:textSize="17sp"
         android:layout_marginTop="20dp"
         android:layout_marginStart="20dp"
@@ -116,7 +126,7 @@
         app:layout_constraintLeft_toLeftOf="parent" />
 
     <TextView
-        android:id="@+id/averageValueLastWeek"
+        android:id="@+id/average_value_last_seven_days"
         android:layout_width="100dp"
         android:layout_height="50dp"
         android:textSize="17sp"
@@ -130,7 +140,7 @@
         android:id="@+id/averageLastMonth"
         android:layout_width="200dp"
         android:layout_height="50dp"
-        android:text="@string/average_sleep_last_month"
+        android:text="@string/average_sleep_last_thirty_days"
         android:textSize="17sp"
         android:layout_marginTop="20dp"
         android:layout_marginStart="20dp"
@@ -138,7 +148,7 @@
         app:layout_constraintLeft_toLeftOf="parent" />
 
     <TextView
-        android:id="@+id/averageValueLastMonth"
+        android:id="@+id/average_value_last_thirty_days"
         android:layout_width="100dp"
         android:layout_height="50dp"
         android:textSize="17sp"

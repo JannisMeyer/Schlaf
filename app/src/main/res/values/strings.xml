@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Schlaf</string>
     <string name="average_sleep">Durchschnittlich (ohne Naps):</string>
-    <string name="average_sleep_last_week">Durchschnittlich letzte Woche:</string>
-    <string name="average_sleep_last_month">Durchschnittlich letzten Monat:</string>
+    <string name="average_sleep_last_seven_days">Durchschnittlich letzte sieben Tage:</string>
+    <string name="average_sleep_last_thirty_days">Durchschnittlich letzte 30 Tage:</string>
     <string name="sleep">Schlaf:</string>
     <string name="extra_sleep">Nap:</string>
     <string name="awake">Wach:</string>
