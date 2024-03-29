@@ -4,7 +4,11 @@ import android.content.ContentValues.TAG
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.schlaf.databinding.ActivityMainBinding
 import com.github.mikephil.charting.charts.BarChart
@@ -17,6 +21,8 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet
+import com.github.mikephil.charting.listener.ChartTouchListener
+import com.github.mikephil.charting.listener.OnChartGestureListener
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import kotlinx.coroutines.*
 import java.time.LocalDate
@@ -119,6 +125,37 @@ class MainActivity : AppCompatActivity() {
                 binding.sick.text = "Krank:"
             }
         })
+        barChart.onChartGestureListener = object : OnChartGestureListener {
+
+            override fun onChartLongPressed(me: MotionEvent?) {
+
+                val highlight = barChart.getHighlightByTouchPoint(me!!.x, me.y)
+                if (highlight != null && highlight.dataSetIndex == 0) {
+                    val entryIndex = highlight.x.toInt()
+                    Log.d(TAG, entryIndex.toString())
+                    val entry = barChart.data.getDataSetByIndex(highlight.dataSetIndex).getEntryForIndex(entryIndex)
+                    val entryData = entry.data as Sleep
+                    Log.d(TAG, entryData.hoursSlept.toString())
+
+                    showPopupWindow(entry)
+                }
+            }
+
+            override fun onChartGestureStart(me: MotionEvent?, lastPerformedGesture: ChartTouchListener.ChartGesture?) {} // have to be implemented
+
+            override fun onChartGestureEnd(me: MotionEvent?, lastPerformedGesture: ChartTouchListener.ChartGesture?) {}
+
+            override fun onChartDoubleTapped(me: MotionEvent?) {}
+
+            override fun onChartSingleTapped(me: MotionEvent?) {}
+
+            override fun onChartFling(me1: MotionEvent?, me2: MotionEvent?, velocityX: Float, velocityY: Float) {}
+
+            override fun onChartScale(me: MotionEvent?, scaleX: Float, scaleY: Float) {}
+
+            override fun onChartTranslate(me: MotionEvent?, dX: Float, dY: Float) {}
+        }
+
 
         // define legend
         val legend: Legend = barChart.legend
@@ -311,5 +348,47 @@ class MainActivity : AppCompatActivity() {
 
         val multiplier = 10.0.pow(decimals)
         return (this * multiplier).roundToInt() / multiplier.toFloat()
+    }
+
+    private fun showPopupWindow(entry: Entry) {
+
+        val popupView = layoutInflater.inflate(R.layout.popup_layout, null)
+
+        val additionalData : Sleep = entry.data as Sleep
+
+        val sleepTextView: TextView = popupView.findViewById(R.id.sleepTextView)
+        val sleepString = "Schlafdauer: ${additionalData.hoursSlept}"
+        sleepTextView.text = sleepString
+
+        val extraSleepTextView: TextView = popupView.findViewById(R.id.extraSleepTextView)
+        val extraSleepString = "Nap: ${additionalData.extraHoursSlept}"
+        extraSleepTextView.text = extraSleepString
+
+        val awakeTextView: TextView = popupView.findViewById(R.id.awakeTextView)
+        val awakeString = if (additionalData.feelingAwake) {
+            "Wach: Ja"
+        } else {
+            "Wach: Nein"
+        }
+        awakeTextView.text = awakeString
+
+        val windowTextView: TextView = popupView.findViewById(R.id.windowTextView)
+        val windowString = if (additionalData.windowOpen) {
+            "Fenster: auf"
+        } else {
+            "Fenster: zu"
+        }
+        windowTextView.text = windowString
+
+        val sickTextView: TextView = popupView.findViewById(R.id.sickTextView)
+        val sickString = if (additionalData.feelingSick) {
+            "Krank: nein"
+        } else {
+            "Krank: ja"
+        }
+        sickTextView.text = sickString
+
+        val popupWindow = PopupWindow(popupView, 1000, 1000, true)
+        popupWindow.showAtLocation(binding.root, Gravity.CENTER, 0, 0)
     }
 }
